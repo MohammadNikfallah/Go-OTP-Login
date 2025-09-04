@@ -104,6 +104,9 @@ func main() {
 	router := httprouter.New()
 	router.HandlerFunc(http.MethodPost, "/request", app.handleRequestOTP)
 	router.HandlerFunc(http.MethodPost, "/verify", app.handleVerifyOTP)
+	router.HandlerFunc(http.MethodGet, "/users", app.handleListUsers)
+	// router.HandlerFunc(http.MethodGet, "/user/", app.getSingleUser)
+	router.GET("/users/:id", app.getSingleUser)
 	router.HandlerFunc(http.MethodGet, "/protected",
 		app.requireAuthenticatedUser(app.protectedHandler))
 	router.GET("/", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

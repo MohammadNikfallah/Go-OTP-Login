@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -24,6 +25,12 @@ var AnonymousUser = &User{}
 
 func (m *User) IsAnonymous() bool {
 	return m == AnonymousUser
+}
+
+type UserFilter struct {
+	Q        string
+	Page     int
+	PageSize int
 }
 
 func (m UserModel) Insert(user *User) error {
@@ -125,4 +132,52 @@ func (m UserModel) GetByID(id int64) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func (m *UserModel) List(ctx context.Context, f UserFilter) ([]User, int, error) {
+	where := `TRUE`
+	args := []any{}
+	i := 1
+
+	if f.Q != "" {
+		where += fmt.Sprintf(" AND (phone_number ILIKE $%d)", i)
+		args = append(args, "%"+f.Q+"%")
+		i++
+	}
+
+	limit := f.PageSize
+	offset := (f.Page - 1) * f.PageSize
+
+	args = append(args, limit, offset)
+
+	q := fmt.Sprintf(`
+		SELECT id, phone_number, created_at, COUNT(*) OVER() AS total_count
+		FROM users
+		WHERE %s
+		LIMIT $%d OFFSET $%d
+	`, where, i, i+1)
+
+	rows, err := m.DB.QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var (
+		items []User
+		total int
+	)
+	for rows.Next() {
+		var u User
+		var t int
+		if err := rows.Scan(&u.ID, &u.PhoneNumber, &u.CreatedAt, &t); err != nil {
+			return nil, 0, err
+		}
+		items = append(items, u)
+		total = t
+	}
+	if rows.Err() != nil {
+		return nil, 0, rows.Err()
+	}
+	return items, total, nil
 }

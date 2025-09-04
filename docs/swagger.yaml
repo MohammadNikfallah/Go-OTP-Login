@@ -9,6 +9,29 @@ definitions:
       phone_number:
         type: string
     type: object
+  main.SingleUserEnvelope:
+    properties:
+      user:
+        $ref: '#/definitions/data.User'
+    type: object
+  main.UsersListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/data.User'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  main.UsersListResponseEnvelope:
+    properties:
+      response:
+        $ref: '#/definitions/main.UsersListResponse'
+    type: object
   main.protectedRes:
     properties:
       expires_at:
@@ -111,6 +134,86 @@ paths:
       summary: Request OTP
       tags:
       - Auth
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Paginated list of users. Supports search by phone or other fields
+        via 'q'.
+      parameters:
+      - description: Search term (matches phone)
+        in: query
+        name: q
+        type: string
+      - description: Page number (1-based, default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Page size (max 100, default 20)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: envelope with 'response' key
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/main.UsersListResponseEnvelope'
+            type: object
+        "500":
+          description: failed to fetch users
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - users
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single user by its numeric ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SingleUserEnvelope'
+        "400":
+          description: invalid user id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: user not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: failed to fetch user
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - users
   /verify:
     post:
       consumes:
