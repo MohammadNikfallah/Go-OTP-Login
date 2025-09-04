@@ -72,7 +72,50 @@ Using them together balances performance (Redis) with reliability (Postgres).
 ## Development
 - Rebuild containers: make restart  
 - Rollback DB: make migrate-down  
-- Full reset: make reset  
+- Full reset: make reset
+- 
+---
+
+## Example API Requests & Responses
+
+### Request OTP
+curl -X POST http://localhost:8000/request \
+  -H "Content-Type: application/json" \
+  -d '{"phone_number":"+1234567890"}'
+  
+### Response:
+{
+  "success": true,
+  "message": "OTP sent successfully"
+}
+
+### Verify OTP
+curl -X POST http://localhost:8000/verify \
+  -H "Content-Type: application/json" \
+  -d '{"phone_number":"+1234567890","otp":"1234"}'
+  
+###Response:
+{
+  "success": true,
+  "message": "User authenticated",
+  "data": {
+    "id": 1,
+    "created_at": "2025-09-04T16:00:00Z",
+    "phone_number": "+1234567890"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+
+###Access Protected Endpoint
+curl -X GET http://localhost:8000/protected \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
+  
+###Response:
+{
+  "message": "Hello +1234567890!",
+  "phone": "+1234567890",
+  "expires_at": "2025-09-06T18:20:34Z"
+}
 
 ---
 
