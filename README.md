@@ -39,7 +39,7 @@ Using them together balances performance (Redis) with reliability (Postgres).
 ## Setup & Run (new PC)
 
 1. Clone repo  
-   git clone https://github.com/yourname/go-otp-login.git  
+   git clone https://github.com/MohammadNikfallah/go-otp-login.git  
    cd go-otp-login  
 
 2. Install dependencies  
