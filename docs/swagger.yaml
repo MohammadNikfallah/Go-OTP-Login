@@ -1,0 +1,161 @@
+basePath: /
+definitions:
+  data.User:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      phone_number:
+        type: string
+    type: object
+  main.protectedRes:
+    properties:
+      expires_at:
+        type: string
+      message:
+        type: string
+      phone:
+        type: string
+    type: object
+  main.requestOTPReq:
+    properties:
+      phone_number:
+        description: 'required: true'
+        type: string
+    type: object
+  main.verifyOTPReq:
+    properties:
+      otp:
+        description: 'required: true'
+        type: string
+      phone_number:
+        description: 'required: true'
+        type: string
+    type: object
+  main.verifyOTPRes:
+    properties:
+      data:
+        $ref: '#/definitions/data.User'
+      message:
+        type: string
+      success:
+        type: boolean
+      token:
+        description: JWT
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact:
+    email: you@example.com
+    name: Your Name
+  description: Simple OTP-based auth API using Redis + Postgres.
+  title: OTP Login API
+  version: "1.0"
+paths:
+  /protected:
+    get:
+      description: 'Requires Bearer token (Authorization: Bearer <token>)'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.protectedRes'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Protected resource
+      tags:
+      - Protected
+  /request:
+    post:
+      consumes:
+      - application/json
+      description: Generates OTP and stores it in Redis for the given phone_number
+        (2 min TTL).
+      parameters:
+      - description: OTP request payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.requestOTPReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success/message
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Request OTP
+      tags:
+      - Auth
+  /verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies OTP, creates user if needed, and returns a JWT.
+      parameters:
+      - description: OTP verification payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.verifyOTPReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.verifyOTPRes'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Verify OTP
+      tags:
+      - Auth
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
