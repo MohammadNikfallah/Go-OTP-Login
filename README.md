@@ -94,7 +94,7 @@ curl -X POST http://localhost:8000/verify \
   -H "Content-Type: application/json" \
   -d '{"phone_number":"+1234567890","otp":"1234"}'
   
-###Response:
+### Response:
 {
   "success": true,
   "message": "User authenticated",
@@ -106,11 +106,11 @@ curl -X POST http://localhost:8000/verify \
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 
-###Access Protected Endpoint
+### Access Protected Endpoint
 curl -X GET http://localhost:8000/protected \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
   
-###Response:
+### Response:
 {
   "message": "Hello +1234567890!",
   "phone": "+1234567890",
